@@ -1,0 +1,19 @@
+{
+  "name": "oidc-check-test",
+  "version": "1.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RDevika/oidc-check.git"
+  },
+  "keywords": [],
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/RDevika/oidc-check/issues"
+  },
+  "homepage": "https://github.com/RDevika/oidc-check#readme"
+}
