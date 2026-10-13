@@ -15,11 +15,37 @@ jobs:
         with:
           node-version: 24
 
-      - name: Show OIDC Subject
+      - name: Show OIDC subject
+        shell: bash
         run: |
-          TOKEN=$(curl -s -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \ 
-            "$ACTIONS_ID_TOKEN_REQUEST_URL&audience=npm:registry.npmjs.org" | jq -r .value) 
-          echo "$TOKEN" | cut -d. -f2 | base64 -d 2>/dev/null | jq '{sub, repository, workflow_ref, environment}'
+          set -euo pipefail
+
+          TOKEN=$(curl -fsS \
+            -H "Authorization: Bearer $ACTIONS_ID_TOKEN_REQUEST_TOKEN" \
+            "${ACTIONS_ID_TOKEN_REQUEST_URL}&audience=npm:registry.npmjs.org" |
+            node -e '
+              let d = "";
+              process.stdin
+                .on("data", c => d += c)
+                .on("end", () => {
+                  const response = JSON.parse(d);
+                  if (!response.value) throw new Error("Missing OIDC token");
+                  process.stdout.write(response.value);
+                });
+            ')
+
+          OIDC_TOKEN="$TOKEN" node -e '
+            const p = process.env.OIDC_TOKEN.split(".")[1];
+            const json = Buffer.from(p, "base64url").toString("utf8");
+            const c = JSON.parse(json);
+
+            console.log(JSON.stringify({
+              sub: c.sub,
+              repository: c.repository,
+              workflow_ref: c.workflow_ref,
+              environment: c.environment ?? null
+            }, null, 2));
+          '
 
       - name: Publish (Trusted Publishing)
         run: |
